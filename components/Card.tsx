@@ -14,7 +14,7 @@ const Card = ({ title, description, imgSrc, href }) => (
             <Image
               alt={title}
               src={imgSrc}
-              className="object-cover object-center md:h-36 lg:h-48"
+              className="object-fill object-center md:h-36 lg:h-48"
               width={544}
               height={306}
             />
@@ -45,7 +45,7 @@ const Card = ({ title, description, imgSrc, href }) => (
             className="text-base font-medium leading-6 text-primary-500 hover:text-primary-600 dark:hover:text-primary-400"
             aria-label={`Link to ${title}`}
           >
-            Learn more &rarr;
+            了解更多 &rarr;
           </Link>
         )}
       </div>

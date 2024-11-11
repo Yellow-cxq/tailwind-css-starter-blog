@@ -1,0 +1,1049 @@
+---
+title: 前端滚动
+date: '2024-11-11'
+tags: ['滚动']
+summary: Scroll
+---
+
+#  快速排序
+思路：
+1. 先从数列中取出一个数作为基准数
+2. 将比这个数小的放在它的左边，比它大的放在右边
+3. 再对左右区间重复1，2步，直到区间中只有两个数
+4. 合并有序区间(左+基准+右)，排序成功
+
+```javascript
+<script>
+    let arr = [31,23,24,2,13,234]
+
+    function quickSort (arr) {
+        //1.找基准数，并且将比基准数小的放在左边，大的放在右边
+        let base_num = arr[0]
+        let left_arr = []
+        let right_arr = []
+        for (let i = 1; i < arr.length; i++) {
+            if(arr[i] < base_num) {
+                left_arr.push(arr[i])
+            } else {
+                right_arr.push(arr[i])
+            }
+        }
+        //2.左右两边的数组执行同样的操作，直到数组中只有一个数时停止
+        if (left_arr.length >= 2) left_arr = quickSort(left_arr)
+        if (right_arr.length >= 2) right_arr = quickSort(right_arr)
+        
+        //3.连接左边+基准+右边
+        return left_arr.concat(base_num,right_arr)
+    }
+
+    let ans = quickSort(arr)
+    console.log(ans)
+</script>
+```
+#  重建二叉树
+输入某二叉树前序遍历和中序遍历的结果，请重建出该二叉树
+思路：
+1. 找到根节点(前序序列的第一个元素一定是根节点)
+2. 根据找到的节点和中序序列，找到树的左子树和右子树
+3. 左子树和右子树做1，2步的递归操作
+```javascript
+<script>
+    let qianXu = [1, 2, 4, 7, 3, 5, 6, 8]
+    let zhongXu = [4, 7, 2, 1, 5, 3, 8, 6]
+
+    function TreeNode(val) {
+        this.val = val
+        this.left = null
+        this.right = null
+    }
+
+    function rebuildTree(qianXu, zhongXu) {
+        //1.根据前序序列确定根节点(前序序列的第一个元素)
+        if (qianXu[0]) {
+            let rootVal = qianXu[0]
+            //2.根据找到的根节点和中序序列确定左子树和右子树
+            let index = zhongXu.indexOf(rootVal) //根节点在中序序列中的下标
+            //3.重复1和2步的递归操作
+            let leftTree = rebuildTree(qianXu.slice(1, index + 1), zhongXu.slice(0, index)) //根据下标拆分出左右子树的前序和中序序列
+            let rightTree = rebuildTree(qianXu.slice(index + 1), zhongXu.slice(index + 1))  //slice留头不留尾，故下标应该多加一个
+            //构建树返回
+            let root = new TreeNode(rootVal)
+            root.left = leftTree
+            root.right = rightTree
+            return root
+        }
+
+    }
+
+    console.log(rebuildTree(qianXu, zhongXu));
+</script>
+```
+#  两个栈实现一个队列
+思路：
+栈1做入队操作，栈2做出队操作
+入队：
+往栈1里面push元素
+出队：
+把栈1的元素移动到栈2(负负得正)
+栈2顶端的元素出栈
+将栈2的数据移动到栈1(恢复数据)
+```javascript
+<script>
+    let stack1 = [] //入队操作
+    let stack2 = [] //出队操作
+
+    function push (node) {
+        //往栈1里面push元素即可
+        stack1.push(node)
+    }
+
+    function pop () {
+        //将栈1的元素移动到栈2 负负得正模仿队列
+        while (stack1.length) {
+            stack2.push(stack1.pop())
+        }
+        //将栈2顶端的数据出栈
+        let popVal = stack2.pop()
+        //将栈2的数据移动到栈1中 恢复数据
+        while(stack2.length) {
+            stack1.push(stack2.pop())
+        }
+        return popVal
+    }
+
+    push(1)
+    push(2)
+    push(3)
+    push(4)
+    push(5)
+    console.log(pop())
+    push(6)
+    console.log(pop())
+    console.log(pop())
+</script>
+```
+#  跳台阶(记忆化递归)
+青蛙一次可以跳上1级或者2级台阶，问青蛙跳上一个n级台阶总共有多少种跳法？
+记忆化递归，保存中间结果，用空间换时间
+```javascript
+<script>
+    //一只青蛙一次可以跳上1级台阶，也可以跳上2阶
+    //试问：该青蛙跳上一个n级台阶总共有多少种跳法？
+
+
+    //记忆化递归写法(保存中间值的结果)
+    let cache = [,1,2]    //对于cache数组，cache[n]就是f(n)的值
+    function jumpFloor (n) {
+        //我们在找f(n)的值的时候，如果缓存中有，则直接使用缓存中的
+        if (cache[n] !== undefined) return cache[n]
+        return cache[n] = jumpFloor(n-1) + jumpFloor(n-2)
+    }
+
+    console.log(jumpFloor(3))
+    console.log(jumpFloor(5))
+    console.log(jumpFloor(6))
+    console.log(jumpFloor(8))
+    console.log(jumpFloor(10))
+</script>
+```
+#  变态跳台阶
+青蛙一次可以跳1，2，3....n级台阶，同求？
+```javascript
+<script>
+    //青蛙一次可以跳1~n级，问跳上n一共多少种跳法？
+    //f(n) = f(n-1) + f(n-2) + .... f(2) + f(1) + 1
+    let cache = [,1,2]
+    function jump (n) {
+        if(cache[n] !== undefined) return cache[n]
+        //计算f(n)并返回
+        cache[n] = 1
+        for (let i = n-1; i >= 1; i--) {
+            cache[n] += jump(i)
+        }
+        return cache[n]
+    }
+    console.log(jump(10));
+</script>
+```
+#  反转链表
+创建链表
+反转链表：
+1. 遍历链表，把链表里面的每个值都拿下来，存在数组里面
+2. 再一次遍历链表，将数组里面的值倒序的赋值给每一个节点的val域实现链表的反转
+```javascript
+<script>
+    //创建链表---使用构造函数
+    function List (node) {
+        this.val = node
+        this.next = null
+    }
+
+    //创建
+    function createList (arr) {
+        let head = new List(arr[0])
+        let tail = head
+       for(let i = 1; i < arr.length; i++) {
+           tail.next = new List(arr[i])
+           tail = tail.next
+       }
+        return head
+    }
+
+    let list = createList([1,2,3,4,5])
+    //console.log(list)
+
+    //反转
+    function resverseList (head) {
+        //遍历链表，将链表里面的值都拿下来，存在数组里面
+        let p = head
+        let arr = []
+        while(p) {
+            arr.push(p.val)
+            p = p.next
+        }
+        //再次遍历链表，将数组里面的值倒序地赋值给每一个节点的val域实现链表的反转
+        p = head
+        while(p) {
+            p.val = arr.pop()
+            p = p.next
+        }
+        return head
+    }
+    console.log(resverseList(list));
+</script>
+```
+#  二叉树的创建(层次遍历)
+算法思路：
+1. 找到根节点，将根节点加入到队列(层次遍历结果序列的第一个一定是根节点)
+2. 循环的将队列队首的元素出队，把和出队元素相关的元素加入到队列(左子树和右子树)，队列为空时结束
+```javascript
+<script>
+    function TreeNode (val) {
+        this.val = val
+        this.left = null
+        this.right = null
+    }
+
+    function craeteTree_levelOrder (levelOrderArr) {
+        //1.找到根节点，将根节点加入到队列(层次遍历结果序列的第一个一定是根节点)
+        let queue = [] //队列
+        let root = null
+        let nodeVal
+        if(levelOrderArr[0] !== undefined) {
+            nodeVal = levelOrderArr.shift()
+            root = new TreeNode(nodeVal)
+            queue.push(root)
+        //2.循环地将队列队首的元素出队，把和出队元素相关的元素加入到队列
+        while(queue.length) {
+           let head = queue.shift()
+           //将左子树加入队列
+           nodeVal = levelOrderArr.shift()
+           if (nodeVal !== '#') {
+               head.left = new TreeNode(nodeVal)
+               queue.push(head.left)
+           }
+           //将右子树加入队列
+           nodeVal = levelOrderArr.shift()
+           if (nodeVal !== '#') {
+               head.right = new TreeNode(nodeVal)
+               queue.push(head.right)
+           }
+
+        }
+        }
+        return root
+
+    }
+    let levelOrderArr = ['a','b','c','d','#','#','e','#','f','#','#','#','#']
+    let tree = craeteTree_levelOrder(levelOrderArr)
+    console.log(tree)
+</script>
+```
+#  二叉树的创建(先序遍历)
+思路：
+1. 拿到先序序列头部的值
+2. 创建根节点，递归创建左子树，递归创建右子树
+3. 不是叶子节点时，才创建子树(!='#')
+```javascript
+<script>
+    function TreeNode(val) {
+        this.val = val
+        this.left = null
+        this.right = null
+    }
+
+    function createTree_preOrder(preOrderArr) {
+        let root = null
+        //1.拿到先序序列头部的值
+        if (preOrderArr[0] !== undefined) {
+            let nodeVal = preOrderArr.shift()
+            if (nodeVal != '#') {
+                //2.创建根节点
+                root = new TreeNode(nodeVal)
+                //递归创建左子树
+                root.left = createTree_preOrder(preOrderArr)
+                //递归创建右子树
+                root.right = createTree_preOrder(preOrderArr)
+            }
+        }
+        return root
+    }
+    let preOrderArr = ['a', 'b', 'd', '#', 'f', '#', '#', '#', 'c', '#', 'e', '#', '#']
+    let tree = createTree_preOrder(preOrderArr)
+    console.log(tree)
+</script>
+```
+
+#  二叉树的深度优先遍历
+先序遍历：根左右
+中序遍历：左根右
+后序遍历：左右根
+使用递归：
+1. 终止条件：叶子节点
+2. 递推表达式：父子节点之间的关系(根左右...)
+3. 返回值：没有
+```javascript
+<script>
+    function TreeNode (val) {
+        this.val = val
+        this.left = null
+        this.right = null
+    }
+
+    function createTree_preOrder (arr) {
+        let root = null
+        if (arr[0] !== undefined) {
+            let nodeVal = arr.shift()
+            if(nodeVal != '#') {
+                root = new TreeNode(nodeVal)
+                root.left = createTree_preOrder (arr)
+                root.right = createTree_preOrder (arr)
+            }
+        }
+
+        return root
+    }
+    let preOrderArr = ['a', 'b', 'd', '#', 'f', '#', '#', '#', 'c', '#', 'e', '#', '#']
+    let tree = createTree_preOrder(preOrderArr)
+    console.log(tree)
+
+    //二叉树的深度优先遍历----递归
+
+    //1.先序遍历  根左右
+    function preOrderTraversal (tree,ans) {
+        if (tree) {  //非叶子节点
+            ans.push(tree.val)  //根节点
+            preOrderTraversal (tree.left,ans) //递归访问左子树
+            preOrderTraversal (tree.right,ans) //递归访问右子树
+        }else { //叶子节点
+            ans.push('#')
+        }
+    }
+    let ans = []
+    preOrderTraversal(tree,ans)
+    console.log(ans.toString())
+    ans = []
+    
+    //2.中序遍历 左根右
+    function inOrderTraversal (tree,ans) {
+        if (tree) {
+            inOrderTraversal(tree.left,ans)
+            ans.push(tree.val)
+            inOrderTraversal(tree.right,ans)
+        } else {
+            ans.push('#')
+        }
+    }
+    inOrderTraversal(tree,ans)
+    console.log(ans.toString())
+    ans = []
+
+    //3.后序遍历 左右根
+    function postOrderTraversal (tree,ans) {
+        if (tree) {
+            postOrderTraversal(tree.left,ans)
+            postOrderTraversal(tree.right,ans)
+            ans.push(tree.val)
+        } else {
+            ans.push('#')
+        }
+    }
+    postOrderTraversal(tree,ans)
+    console.log(ans.toString())
+</script>
+```
+#  二叉树的广度优先遍历
+层次遍历
+使用队列
+队列不为空
+1. 将队列队首的元素出队(树的根节点或者子树的根节点)
+2. 把和出队元素相关的元素入队(根节点的左子树和右子树)
+3. 在入队之间访问节点的值
+步骤：
+访问到根节点，并且将它加入到队列中
+循环的将队列队首的元素出队，把和出队元素相关的元素加入到队列中(循环一直到队列为空)
+注意：叶子节点不用加入到队列中
+```javascript
+<script>
+    function TreeNode (val) {
+        this.val = val
+        this.left = null
+        this.right = null
+    }
+
+    function createTree_preOrder (preOrderArr) {
+        let root = null
+        if(preOrderArr[0] !== undefined) {
+            let nodeVal = preOrderArr.shift()
+            if(nodeVal != '#') {
+                root = new TreeNode(nodeVal)
+                root.left = createTree_preOrder (preOrderArr)
+                root.right = createTree_preOrder (preOrderArr)
+            }
+        }
+        return root
+    }
+    let preOrderArr = ['a', 'b', 'd', '#', 'f', '#', '#', '#', 'c', '#', 'e', '#', '#']
+    let tree = createTree_preOrder(preOrderArr)
+    console.log(tree)
+
+    //二叉树的广度优先遍历---层次遍历
+    //使用队列
+    //步骤：1.访问到根节点，并且把它加入到队列中  2.循环的将队列队首的元素出队，把和出队元素相关的元素加入到队列中(循环一直到队列为空)
+    //注意：叶子节点不用加入到队列中
+
+    function levelOrderTraversal (tree,ans) {
+        let queue = []
+        if(tree) { //不为空
+           ans.push(tree.val) //在入队之前访问，因为#不会入队，在入队之后访问，访问不到
+           queue.push(tree) 
+        }
+        while(queue.length) {
+            let head = queue.shift()
+            let left = head.left
+            if (left) { //不为叶子节点
+                ans.push(left.val)
+                queue.push(left)
+            } else { //是叶子节点
+                ans.push('#')
+            }
+            let right = head.right
+            if (right) { //不为叶子节点
+                ans.push(right.val)
+                queue.push(right)
+            } else { //是叶子节点
+                ans.push('#')
+            }
+        }
+    }
+
+    let ans = []
+    levelOrderTraversal(tree,ans)
+    console.log(ans);
+</script>
+```
+#  字典树
+问题：创建一个字典树，在字典树中查找是否包含某个单词？
+字典树又称单词查找树，Trie树，是一种树形结构，是一种哈希树的变种。典型应用是统计、排序和保存大量的字符串
+特点：
+1. 字典树的节点存储的是单词的字符(字母)
+2. 为了表示一个单词是否出现，我们可以给单词最后出现的字符加上标记
+3. 字典树中表示一个单词用的是一条链
+4. 字典树的根节点没有什么意义
+操作：
+a. 把单词插入到字典树里面去
+算法步骤
+去根节点下面去找这个单词的第一个字符是否出现，如果没有出现，就创建，然后继续往下走，如果出现了，直接往下走，在这个过程里，单词的第一个字符就被消耗了
+b.在字典树中查找单词
+算法步骤
+查找单词的第一个字符是否在根节点的子节点中，如果出现了就接着往下找，如果没有出现，直接return false，在单词找完后，如果标记大于1，则表示单词存在，return true，否则return false，
+```javascript
+<script>
+    //字典树：字典树又称单词查找树，Trie树，是一种树形结构，是哈希树的变种。典型应用是统计、排序和保存大量的字符串
+    //特点
+    //1.字典树的节点存储的是单词的字符(字母)
+    //2.为了表示一个单词是否出现，我们可以给单词的最后的字符加上标记
+    //3.字典树中表示一个单词用的是一条链
+    //4.字典树的根节点没有什么意义
+
+    //1.把单词插入到字典树里面去
+    //思路：去根节点下面去找这个单词的第一个字符是否出现，如果没有出现，就创建，然后走这条路，如果出现了直接走这条路，在这个过程里单词的第一个字符就被消耗了
+    //使用递归
+    //递归的终止条件：把单词的所有字符插完(str[0]===undefined)终止后应打上标记
+    //递归的递推表达式：父节点到子节点，单词的首字母就被用掉了
+    //递归的返回值：不需要
+
+    //2.在字典树中查找单词
+    //思路：查找单词的第一个字符是否在根节点的子节点中，如果出现了就接着往下找，如果没有出现，直接return false，在单词找完后，如果标记大于1，则表示单词存在，return true，否则return false
+    //使用递归
+    //递归的终止条件：在子节点中没找到或者单词找完
+    //递归的递推表达式：父节点到子节点，单词的首字母就被用掉了
+    //递归的返回值：true/false
+
+    function TrieNode (val) {
+        this.val = val
+        this.children = []
+        this.count = 0
+    }
+
+    //1.把单词插入到字典树里面去
+    function insert (root,str) {
+        if(str[0] !== undefined) {
+            if(root.children[str[0]] === undefined) {
+                root.children[str[0]] = new TrieNode(str[0])
+            }
+            insert(root.children[str[0]],str.slice(1))
+        } else {
+            root.count++
+        }
+    }
+
+    //2.在字典树中查找单词
+    function find(root,str) {
+        if (str[0] !== undefined) {
+            if(root.children[str[0]] === undefined) return false
+            else return find(root.children[str[0]],str.slice(1))
+        } else {
+            if(root.count >= 1) return true
+            else return false
+        }
+    }
+    
+    let root = new TrieNode("")
+    insert(root,'and')
+    insert(root,'about')
+    insert(root,'as')
+    insert(root,'boy')
+    insert(root,'by')
+    insert(root,'because')
+    insert(root,'as')
+    console.log(root)
+
+    console.log(find(root,'close')) //false
+    console.log(find(root,'an')) //false
+    console.log(find(root,'as')) //true
+    console.log(find(root,'boy')) //true
+</script>
+```
+感谢B站天才up主范仁义的讲授，更多精彩内容请移步他的个人网站：[链接](https://fanrenyi.com)@[TOC](常见算法)
+#  快速排序
+思路：
+1. 先从数列中取出一个数作为基准数
+2. 将比这个数小的放在它的左边，比它大的放在右边
+3. 再对左右区间重复1，2步，直到区间中只有两个数
+4. 合并有序区间(左+基准+右)，排序成功
+
+```javascript
+<script>
+    let arr = [31,23,24,2,13,234]
+
+    function quickSort (arr) {
+        //1.找基准数，并且将比基准数小的放在左边，大的放在右边
+        let base_num = arr[0]
+        let left_arr = []
+        let right_arr = []
+        for (let i = 1; i < arr.length; i++) {
+            if(arr[i] < base_num) {
+                left_arr.push(arr[i])
+            } else {
+                right_arr.push(arr[i])
+            }
+        }
+        //2.左右两边的数组执行同样的操作，直到数组中只有一个数时停止
+        if (left_arr.length >= 2) left_arr = quickSort(left_arr)
+        if (right_arr.length >= 2) right_arr = quickSort(right_arr)
+        
+        //3.连接左边+基准+右边
+        return left_arr.concat(base_num,right_arr)
+    }
+
+    let ans = quickSort(arr)
+    console.log(ans)
+</script>
+```
+#  重建二叉树
+输入某二叉树前序遍历和中序遍历的结果，请重建出该二叉树
+思路：
+1. 找到根节点(前序序列的第一个元素一定是根节点)
+2. 根据找到的节点和中序序列，找到树的左子树和右子树
+3. 左子树和右子树做1，2步的递归操作
+```javascript
+<script>
+    let qianXu = [1, 2, 4, 7, 3, 5, 6, 8]
+    let zhongXu = [4, 7, 2, 1, 5, 3, 8, 6]
+
+    function TreeNode(val) {
+        this.val = val
+        this.left = null
+        this.right = null
+    }
+
+    function rebuildTree(qianXu, zhongXu) {
+        //1.根据前序序列确定根节点(前序序列的第一个元素)
+        if (qianXu[0]) {
+            let rootVal = qianXu[0]
+            //2.根据找到的根节点和中序序列确定左子树和右子树
+            let index = zhongXu.indexOf(rootVal) //根节点在中序序列中的下标
+            //3.重复1和2步的递归操作
+            let leftTree = rebuildTree(qianXu.slice(1, index + 1), zhongXu.slice(0, index)) //根据下标拆分出左右子树的前序和中序序列
+            let rightTree = rebuildTree(qianXu.slice(index + 1), zhongXu.slice(index + 1))  //slice留头不留尾，故下标应该多加一个
+            //构建树返回
+            let root = new TreeNode(rootVal)
+            root.left = leftTree
+            root.right = rightTree
+            return root
+        }
+
+    }
+
+    console.log(rebuildTree(qianXu, zhongXu));
+</script>
+```
+#  两个栈实现一个队列
+思路：
+栈1做入队操作，栈2做出队操作
+入队：
+往栈1里面push元素
+出队：
+把栈1的元素移动到栈2(负负得正)
+栈2顶端的元素出栈
+将栈2的数据移动到栈1(恢复数据)
+```javascript
+<script>
+    let stack1 = [] //入队操作
+    let stack2 = [] //出队操作
+
+    function push (node) {
+        //往栈1里面push元素即可
+        stack1.push(node)
+    }
+
+    function pop () {
+        //将栈1的元素移动到栈2 负负得正模仿队列
+        while (stack1.length) {
+            stack2.push(stack1.pop())
+        }
+        //将栈2顶端的数据出栈
+        let popVal = stack2.pop()
+        //将栈2的数据移动到栈1中 恢复数据
+        while(stack2.length) {
+            stack1.push(stack2.pop())
+        }
+        return popVal
+    }
+
+    push(1)
+    push(2)
+    push(3)
+    push(4)
+    push(5)
+    console.log(pop())
+    push(6)
+    console.log(pop())
+    console.log(pop())
+</script>
+```
+#  跳台阶(记忆化递归)
+青蛙一次可以跳上1级或者2级台阶，问青蛙跳上一个n级台阶总共有多少种跳法？
+记忆化递归，保存中间结果，用空间换时间
+```javascript
+<script>
+    //一只青蛙一次可以跳上1级台阶，也可以跳上2阶
+    //试问：该青蛙跳上一个n级台阶总共有多少种跳法？
+
+
+    //记忆化递归写法(保存中间值的结果)
+    let cache = [,1,2]    //对于cache数组，cache[n]就是f(n)的值
+    function jumpFloor (n) {
+        //我们在找f(n)的值的时候，如果缓存中有，则直接使用缓存中的
+        if (cache[n] !== undefined) return cache[n]
+        return cache[n] = jumpFloor(n-1) + jumpFloor(n-2)
+    }
+
+    console.log(jumpFloor(3))
+    console.log(jumpFloor(5))
+    console.log(jumpFloor(6))
+    console.log(jumpFloor(8))
+    console.log(jumpFloor(10))
+</script>
+```
+#  变态跳台阶
+青蛙一次可以跳1，2，3....n级台阶，同求？
+```javascript
+<script>
+    //青蛙一次可以跳1~n级，问跳上n一共多少种跳法？
+    //f(n) = f(n-1) + f(n-2) + .... f(2) + f(1) + 1
+    let cache = [,1,2]
+    function jump (n) {
+        if(cache[n] !== undefined) return cache[n]
+        //计算f(n)并返回
+        cache[n] = 1
+        for (let i = n-1; i >= 1; i--) {
+            cache[n] += jump(i)
+        }
+        return cache[n]
+    }
+    console.log(jump(10));
+</script>
+```
+#  反转链表
+创建链表
+反转链表：
+1. 遍历链表，把链表里面的每个值都拿下来，存在数组里面
+2. 再一次遍历链表，将数组里面的值倒序的赋值给每一个节点的val域实现链表的反转
+```javascript
+<script>
+    //创建链表---使用构造函数
+    function List (node) {
+        this.val = node
+        this.next = null
+    }
+
+    //创建
+    function createList (arr) {
+        let head = new List(arr[0])
+        let tail = head
+       for(let i = 1; i < arr.length; i++) {
+           tail.next = new List(arr[i])
+           tail = tail.next
+       }
+        return head
+    }
+
+    let list = createList([1,2,3,4,5])
+    //console.log(list)
+
+    //反转
+    function resverseList (head) {
+        //遍历链表，将链表里面的值都拿下来，存在数组里面
+        let p = head
+        let arr = []
+        while(p) {
+            arr.push(p.val)
+            p = p.next
+        }
+        //再次遍历链表，将数组里面的值倒序地赋值给每一个节点的val域实现链表的反转
+        p = head
+        while(p) {
+            p.val = arr.pop()
+            p = p.next
+        }
+        return head
+    }
+    console.log(resverseList(list));
+</script>
+```
+#  二叉树的创建(层次遍历)
+算法思路：
+1. 找到根节点，将根节点加入到队列(层次遍历结果序列的第一个一定是根节点)
+2. 循环的将队列队首的元素出队，把和出队元素相关的元素加入到队列(左子树和右子树)，队列为空时结束
+```javascript
+<script>
+    function TreeNode (val) {
+        this.val = val
+        this.left = null
+        this.right = null
+    }
+
+    function craeteTree_levelOrder (levelOrderArr) {
+        //1.找到根节点，将根节点加入到队列(层次遍历结果序列的第一个一定是根节点)
+        let queue = [] //队列
+        let root = null
+        let nodeVal
+        if(levelOrderArr[0] !== undefined) {
+            nodeVal = levelOrderArr.shift()
+            root = new TreeNode(nodeVal)
+            queue.push(root)
+        //2.循环地将队列队首的元素出队，把和出队元素相关的元素加入到队列
+        while(queue.length) {
+           let head = queue.shift()
+           //将左子树加入队列
+           nodeVal = levelOrderArr.shift()
+           if (nodeVal !== '#') {
+               head.left = new TreeNode(nodeVal)
+               queue.push(head.left)
+           }
+           //将右子树加入队列
+           nodeVal = levelOrderArr.shift()
+           if (nodeVal !== '#') {
+               head.right = new TreeNode(nodeVal)
+               queue.push(head.right)
+           }
+
+        }
+        }
+        return root
+
+    }
+    let levelOrderArr = ['a','b','c','d','#','#','e','#','f','#','#','#','#']
+    let tree = craeteTree_levelOrder(levelOrderArr)
+    console.log(tree)
+</script>
+```
+#  二叉树的创建(先序遍历)
+思路：
+1. 拿到先序序列头部的值
+2. 创建根节点，递归创建左子树，递归创建右子树
+3. 不是叶子节点时，才创建子树(!='#')
+```javascript
+<script>
+    function TreeNode(val) {
+        this.val = val
+        this.left = null
+        this.right = null
+    }
+
+    function createTree_preOrder(preOrderArr) {
+        let root = null
+        //1.拿到先序序列头部的值
+        if (preOrderArr[0] !== undefined) {
+            let nodeVal = preOrderArr.shift()
+            if (nodeVal != '#') {
+                //2.创建根节点
+                root = new TreeNode(nodeVal)
+                //递归创建左子树
+                root.left = createTree_preOrder(preOrderArr)
+                //递归创建右子树
+                root.right = createTree_preOrder(preOrderArr)
+            }
+        }
+        return root
+    }
+    let preOrderArr = ['a', 'b', 'd', '#', 'f', '#', '#', '#', 'c', '#', 'e', '#', '#']
+    let tree = createTree_preOrder(preOrderArr)
+    console.log(tree)
+</script>
+```
+
+#  二叉树的深度优先遍历
+先序遍历：根左右
+中序遍历：左根右
+后序遍历：左右根
+使用递归：
+1. 终止条件：叶子节点
+2. 递推表达式：父子节点之间的关系(根左右...)
+3. 返回值：没有
+```javascript
+<script>
+    function TreeNode (val) {
+        this.val = val
+        this.left = null
+        this.right = null
+    }
+
+    function createTree_preOrder (arr) {
+        let root = null
+        if (arr[0] !== undefined) {
+            let nodeVal = arr.shift()
+            if(nodeVal != '#') {
+                root = new TreeNode(nodeVal)
+                root.left = createTree_preOrder (arr)
+                root.right = createTree_preOrder (arr)
+            }
+        }
+
+        return root
+    }
+    let preOrderArr = ['a', 'b', 'd', '#', 'f', '#', '#', '#', 'c', '#', 'e', '#', '#']
+    let tree = createTree_preOrder(preOrderArr)
+    console.log(tree)
+
+    //二叉树的深度优先遍历----递归
+
+    //1.先序遍历  根左右
+    function preOrderTraversal (tree,ans) {
+        if (tree) {  //非叶子节点
+            ans.push(tree.val)  //根节点
+            preOrderTraversal (tree.left,ans) //递归访问左子树
+            preOrderTraversal (tree.right,ans) //递归访问右子树
+        }else { //叶子节点
+            ans.push('#')
+        }
+    }
+    let ans = []
+    preOrderTraversal(tree,ans)
+    console.log(ans.toString())
+    ans = []
+    
+    //2.中序遍历 左根右
+    function inOrderTraversal (tree,ans) {
+        if (tree) {
+            inOrderTraversal(tree.left,ans)
+            ans.push(tree.val)
+            inOrderTraversal(tree.right,ans)
+        } else {
+            ans.push('#')
+        }
+    }
+    inOrderTraversal(tree,ans)
+    console.log(ans.toString())
+    ans = []
+
+    //3.后序遍历 左右根
+    function postOrderTraversal (tree,ans) {
+        if (tree) {
+            postOrderTraversal(tree.left,ans)
+            postOrderTraversal(tree.right,ans)
+            ans.push(tree.val)
+        } else {
+            ans.push('#')
+        }
+    }
+    postOrderTraversal(tree,ans)
+    console.log(ans.toString())
+</script>
+```
+#  二叉树的广度优先遍历
+层次遍历
+使用队列
+队列不为空
+1. 将队列队首的元素出队(树的根节点或者子树的根节点)
+2. 把和出队元素相关的元素入队(根节点的左子树和右子树)
+3. 在入队之间访问节点的值
+步骤：
+访问到根节点，并且将它加入到队列中
+循环的将队列队首的元素出队，把和出队元素相关的元素加入到队列中(循环一直到队列为空)
+注意：叶子节点不用加入到队列中
+```javascript
+<script>
+    function TreeNode (val) {
+        this.val = val
+        this.left = null
+        this.right = null
+    }
+
+    function createTree_preOrder (preOrderArr) {
+        let root = null
+        if(preOrderArr[0] !== undefined) {
+            let nodeVal = preOrderArr.shift()
+            if(nodeVal != '#') {
+                root = new TreeNode(nodeVal)
+                root.left = createTree_preOrder (preOrderArr)
+                root.right = createTree_preOrder (preOrderArr)
+            }
+        }
+        return root
+    }
+    let preOrderArr = ['a', 'b', 'd', '#', 'f', '#', '#', '#', 'c', '#', 'e', '#', '#']
+    let tree = createTree_preOrder(preOrderArr)
+    console.log(tree)
+
+    //二叉树的广度优先遍历---层次遍历
+    //使用队列
+    //步骤：1.访问到根节点，并且把它加入到队列中  2.循环的将队列队首的元素出队，把和出队元素相关的元素加入到队列中(循环一直到队列为空)
+    //注意：叶子节点不用加入到队列中
+
+    function levelOrderTraversal (tree,ans) {
+        let queue = []
+        if(tree) { //不为空
+           ans.push(tree.val) //在入队之前访问，因为#不会入队，在入队之后访问，访问不到
+           queue.push(tree) 
+        }
+        while(queue.length) {
+            let head = queue.shift()
+            let left = head.left
+            if (left) { //不为叶子节点
+                ans.push(left.val)
+                queue.push(left)
+            } else { //是叶子节点
+                ans.push('#')
+            }
+            let right = head.right
+            if (right) { //不为叶子节点
+                ans.push(right.val)
+                queue.push(right)
+            } else { //是叶子节点
+                ans.push('#')
+            }
+        }
+    }
+
+    let ans = []
+    levelOrderTraversal(tree,ans)
+    console.log(ans);
+</script>
+```
+#  字典树
+问题：创建一个字典树，在字典树中查找是否包含某个单词？
+字典树又称单词查找树，Trie树，是一种树形结构，是一种哈希树的变种。典型应用是统计、排序和保存大量的字符串
+特点：
+1. 字典树的节点存储的是单词的字符(字母)
+2. 为了表示一个单词是否出现，我们可以给单词最后出现的字符加上标记
+3. 字典树中表示一个单词用的是一条链
+4. 字典树的根节点没有什么意义
+操作：
+a. 把单词插入到字典树里面去
+算法步骤
+去根节点下面去找这个单词的第一个字符是否出现，如果没有出现，就创建，然后继续往下走，如果出现了，直接往下走，在这个过程里，单词的第一个字符就被消耗了
+b.在字典树中查找单词
+算法步骤
+查找单词的第一个字符是否在根节点的子节点中，如果出现了就接着往下找，如果没有出现，直接return false，在单词找完后，如果标记大于1，则表示单词存在，return true，否则return false，
+```javascript
+<script>
+    //字典树：字典树又称单词查找树，Trie树，是一种树形结构，是哈希树的变种。典型应用是统计、排序和保存大量的字符串
+    //特点
+    //1.字典树的节点存储的是单词的字符(字母)
+    //2.为了表示一个单词是否出现，我们可以给单词的最后的字符加上标记
+    //3.字典树中表示一个单词用的是一条链
+    //4.字典树的根节点没有什么意义
+
+    //1.把单词插入到字典树里面去
+    //思路：去根节点下面去找这个单词的第一个字符是否出现，如果没有出现，就创建，然后走这条路，如果出现了直接走这条路，在这个过程里单词的第一个字符就被消耗了
+    //使用递归
+    //递归的终止条件：把单词的所有字符插完(str[0]===undefined)终止后应打上标记
+    //递归的递推表达式：父节点到子节点，单词的首字母就被用掉了
+    //递归的返回值：不需要
+
+    //2.在字典树中查找单词
+    //思路：查找单词的第一个字符是否在根节点的子节点中，如果出现了就接着往下找，如果没有出现，直接return false，在单词找完后，如果标记大于1，则表示单词存在，return true，否则return false
+    //使用递归
+    //递归的终止条件：在子节点中没找到或者单词找完
+    //递归的递推表达式：父节点到子节点，单词的首字母就被用掉了
+    //递归的返回值：true/false
+
+    function TrieNode (val) {
+        this.val = val
+        this.children = []
+        this.count = 0
+    }
+
+    //1.把单词插入到字典树里面去
+    function insert (root,str) {
+        if(str[0] !== undefined) {
+            if(root.children[str[0]] === undefined) {
+                root.children[str[0]] = new TrieNode(str[0])
+            }
+            insert(root.children[str[0]],str.slice(1))
+        } else {
+            root.count++
+        }
+    }
+
+    //2.在字典树中查找单词
+    function find(root,str) {
+        if (str[0] !== undefined) {
+            if(root.children[str[0]] === undefined) return false
+            else return find(root.children[str[0]],str.slice(1))
+        } else {
+            if(root.count >= 1) return true
+            else return false
+        }
+    }
+    
+    let root = new TrieNode("")
+    insert(root,'and')
+    insert(root,'about')
+    insert(root,'as')
+    insert(root,'boy')
+    insert(root,'by')
+    insert(root,'because')
+    insert(root,'as')
+    console.log(root)
+
+    console.log(find(root,'close')) //false
+    console.log(find(root,'an')) //false
+    console.log(find(root,'as')) //true
+    console.log(find(root,'boy')) //true
+</script>
+```
+感谢B站天才up主范仁义的讲授，更多精彩内容请移步他的个人网站：[链接](https://fanrenyi.com)
